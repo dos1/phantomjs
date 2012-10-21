@@ -34,6 +34,9 @@
 #include <QString>
 #include <QStringList>
 #include <QNetworkProxy>
+#include <QVariant>
+
+class QCommandLine;
 
 class Config: QObject
 {
@@ -49,6 +52,11 @@ class Config: QObject
     Q_PROPERTY(QString proxyAuth READ proxyAuth WRITE setProxyAuth)
     Q_PROPERTY(QString scriptEncoding READ scriptEncoding WRITE setScriptEncoding)
     Q_PROPERTY(bool webSecurityEnabled READ webSecurityEnabled WRITE setWebSecurityEnabled)
+    Q_PROPERTY(QString offlineStoragePath READ offlineStoragePath WRITE setOfflineStoragePath)
+    Q_PROPERTY(int offlineStorageDefaultQuota READ offlineStorageDefaultQuota WRITE setOfflineStorageDefaultQuota)
+    Q_PROPERTY(bool printDebugMessages READ printDebugMessages WRITE setPrintDebugMessages)
+    Q_PROPERTY(bool javascriptCanOpenWindows READ javascriptCanOpenWindows WRITE setJavascriptCanOpenWindows)
+    Q_PROPERTY(bool javascriptCanCloseWindows READ javascriptCanCloseWindows WRITE setJavascriptCanCloseWindows)
 
 public:
     Config(QObject *parent = 0);
@@ -57,11 +65,19 @@ public:
     void processArgs(const QStringList &args);
     void loadJsonFile(const QString &filePath);
 
+    QString helpText() const;
+
     bool autoLoadImages() const;
     void setAutoLoadImages(const bool value);
 
     QString cookiesFile() const;
     void setCookiesFile(const QString &cookiesFile);
+
+    QString offlineStoragePath() const;
+    void setOfflineStoragePath(const QString &value);
+
+    int offlineStorageDefaultQuota() const;
+    void setOfflineStorageDefaultQuota(int offlineStorageDefaultQuota);
 
     bool diskCacheEnabled() const;
     void setDiskCacheEnabled(const bool value);
@@ -123,6 +139,21 @@ public:
     bool helpFlag() const;
     void setHelpFlag(const bool value);
 
+    void setPrintDebugMessages(const bool value);
+    bool printDebugMessages() const;
+
+    void setJavascriptCanOpenWindows(const bool value);
+    bool javascriptCanOpenWindows() const;
+
+    void setJavascriptCanCloseWindows(const bool value);
+    bool javascriptCanCloseWindows() const;
+
+public slots:
+    void handleSwitch(const QString &sw);
+    void handleOption(const QString &option, const QVariant &value);
+    void handleParam(const QString& param, const QVariant &value);
+    void handleError(const QString &error);
+
 private:
     void resetToDefaults();
     void setProxyHost(const QString &value);
@@ -130,8 +161,11 @@ private:
     void setAuthUser(const QString &value);
     void setAuthPass(const QString &value);
 
+    QCommandLine *m_cmdLine;
     bool m_autoLoadImages;
     QString m_cookiesFile;
+    QString m_offlineStoragePath;
+    int m_offlineStorageDefaultQuota;
     bool m_diskCacheEnabled;
     int m_maxDiskCacheSize;
     bool m_ignoreSslErrors;
@@ -154,6 +188,9 @@ private:
     bool m_remoteDebugAutorun;
     bool m_webSecurityEnabled;
     bool m_helpFlag;
+    bool m_printDebugMessages;
+    bool m_javascriptCanOpenWindows;
+    bool m_javascriptCanCloseWindows;
 };
 
 #endif // CONFIG_H

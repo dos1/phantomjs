@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -44,19 +44,19 @@
 
 #include <stddef.h>
 
-#define QT_VERSION_STR "4.8.0"
+#define QT_VERSION_STR "4.8.2"
 /*
    QT_VERSION is (major << 16) + (minor << 8) + patch.
 */
-#define QT_VERSION 0x040800
+#define QT_VERSION 0x040802
 /*
    can be used like #if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
 */
 #define QT_VERSION_CHECK(major, minor, patch) ((major<<16)|(minor<<8)|(patch))
 
-#define QT_PACKAGEDATE_STR "2011-12-08"
+#define QT_PACKAGEDATE_STR "2012-04-26"
 
-#define QT_PACKAGE_TAG "f33b28d27a8e738fa93a45f44445d0fe255810b0"
+#define QT_PACKAGE_TAG "f1a55ad65337bb614c3dd6e723554bded72a28e4"
 
 #if !defined(QT_BUILD_MOC)
 #include <QtCore/qconfig.h>
@@ -1569,6 +1569,7 @@ public:
         WV_2003     = 0x0040,
         WV_VISTA    = 0x0080,
         WV_WINDOWS7 = 0x0090,
+        WV_WINDOWS8 = 0x00a0,
         WV_NT_based = 0x00f0,
 
         /* version numbers */
@@ -1578,6 +1579,7 @@ public:
         WV_5_2      = WV_2003,
         WV_6_0      = WV_VISTA,
         WV_6_1      = WV_WINDOWS7,
+        WV_6_2      = WV_WINDOWS8,
 
         WV_CE       = 0x0100,
         WV_CENET    = 0x0200,
@@ -1603,6 +1605,7 @@ public:
         MV_10_5 = 0x0007,
         MV_10_6 = 0x0008,
         MV_10_7 = 0x0009,
+        MV_10_8 = 0x000A,
 
         /* codenames */
         MV_CHEETAH = MV_10_0,
@@ -1612,7 +1615,8 @@ public:
         MV_TIGER = MV_10_4,
         MV_LEOPARD = MV_10_5,
         MV_SNOWLEOPARD = MV_10_6,
-        MV_LION = MV_10_7
+        MV_LION = MV_10_7,
+        MV_MOUNTAINLION = MV_10_8
     };
     static const MacVersion MacintoshVersion;
 #endif
@@ -1629,7 +1633,8 @@ public:
         SV_SF_3 = 50,
         SV_SF_4 = 60,  // Deprecated
         SV_API_5_3 = 70,
-        SV_API_5_4 = 80
+        SV_API_5_4 = 80,
+        SV_API_5_5 = 90
     };
     static SymbianVersion symbianVersion();
     enum S60Version {
@@ -1641,7 +1646,8 @@ public:
         SV_S60_5_1 = SV_SF_2,  // Deprecated
         SV_S60_5_2 = SV_SF_3,
         SV_S60_5_3 = SV_API_5_3,
-        SV_S60_5_4 = SV_API_5_4
+        SV_S60_5_4 = SV_API_5_4,
+        SV_S60_5_5 = SV_API_5_5
     };
     static S60Version s60Version();
 #endif
@@ -1767,6 +1773,10 @@ Q_CORE_EXPORT_INLINE QDebug qWarning();
 Q_CORE_EXPORT_INLINE QDebug qCritical();
 #else
 inline QNoDebug qDebug();
+#endif
+
+#ifdef QT_NO_WARNING_OUTPUT
+inline QNoDebug qWarning();
 #endif
 
 #define QT_NO_QDEBUG_MACRO while (false) qDebug

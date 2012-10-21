@@ -34,7 +34,9 @@
 #include <QNetworkDiskCache>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QSslSocket>
 
+#include "phantom.h"
 #include "config.h"
 #include "cookiejar.h"
 #include "networkaccessmanager.h"
@@ -72,9 +74,7 @@ NetworkAccessManager::NetworkAccessManager(QObject *parent, const Config *config
     , m_idCounter(0)
     , m_networkDiskCache(0)
 {
-    if (!config->cookiesFile().isEmpty()) {
-        setCookieJar(new CookieJar(config->cookiesFile()));
-    }
+    setCookieJar(CookieJar::instance());
 
     if (config->diskCacheEnabled()) {
         m_networkDiskCache = new QNetworkDiskCache(this);
@@ -108,10 +108,25 @@ QVariantMap NetworkAccessManager::customHeaders() const
     return m_customHeaders;
 }
 
+void NetworkAccessManager::setCookieJar(QNetworkCookieJar *cookieJar)
+{
+    QNetworkAccessManager::setCookieJar(cookieJar);
+    // Remove NetworkAccessManager's ownership of this CookieJar and
+    // pass it to the PhantomJS Singleton object.
+    // CookieJar is a SINGLETON, shouldn't be deleted when
+    // the NetworkAccessManager is deleted but only when we shutdown.
+    cookieJar->setParent(Phantom::instance());
+}
+
 // protected:
 QNetworkReply *NetworkAccessManager::createRequest(Operation op, const QNetworkRequest & request, QIODevice * outgoingData)
 {
     QNetworkRequest req(request);
+
+    if (!QSslSocket::supportsSsl()) {
+        if (req.url().scheme().toLower() == QLatin1String("https"))
+            qWarning() << "Request using https scheme without SSL support";
+    }
 
     // Get the URL string before calling the superclass. Seems to work around
     // segfaults in Qt 4.8: https://gist.github.com/1430393

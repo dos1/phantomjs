@@ -2,6 +2,7 @@
   This file is part of the PhantomJS project from Ofi Labs.
 
   Copyright (C) 2011 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com
+  Copyright (C) 2011 Ivan De Marino <ivan.de.marino@gmail.com>
   Author: Milian Wolff <milian.wolff@kdab.com>
 
   Redistribution and use in source and binary forms, with or without
@@ -90,9 +91,8 @@ static void *callback(mg_event event,
     }
 }
 
-WebServer::WebServer(QObject *parent, Config *config)
+WebServer::WebServer(QObject *parent)
     : REPLCompletable(parent)
-    , m_config(config)
     , m_ctx(0)
 {
     setObjectName("WebServer");
@@ -106,9 +106,9 @@ WebServer::~WebServer()
 
 bool WebServer::listenOnPort(const QString& port, const QVariantMap& opts)
 {
-    ///TODO: listen on multiple ports?
     close();
 
+    // Create options vector
     QVector<const char*> options;
     options <<  "listening_ports" << qstrdup(qPrintable(port));
     options << "enable_directory_listing" << "no";
@@ -116,7 +116,8 @@ bool WebServer::listenOnPort(const QString& port, const QVariantMap& opts)
         options << "enable_keep_alive" << "yes";
     }
     options << NULL;
-    ///TODO: more options from m_config?
+
+    // Start the server
     m_ctx = mg_start(&callback, this, options.data());
     if (!m_ctx) {
         return false;
@@ -163,6 +164,11 @@ bool WebServer::handleRequest(mg_event event, mg_connection *conn, const mg_requ
     QVariantMap requestObject;
 
     ///TODO: encoding?!
+
+    qDebug() << "HTTP Request - URI" << request->uri;
+    qDebug() << "HTTP Request - Method" << request->request_method;
+    qDebug() << "HTTP Request - HTTP Version" << request->http_version;
+    qDebug() << "HTTP Request - Query String" << request->query_string;
 
     if (request->request_method)
         requestObject["method"] = QString::fromLocal8Bit(request->request_method);
@@ -383,6 +389,7 @@ void WebServerResponse::writeHead(int statusCode, const QVariantMap &headers)
     m_headersSent = true;
     m_statusCode = statusCode;
     mg_printf(m_conn, "HTTP/1.1 %d %s\r\n", m_statusCode, responseCodeString(m_statusCode));
+    qDebug() << "HTTP Response - Status Code" << m_statusCode << responseCodeString(m_statusCode);
     QVariantMap::const_iterator it = headers.constBegin();
     while(it != headers.constEnd()) {
         qDebug() << "HTTP Response - Sending Header" << it.key() << "=" << it.value().toString();

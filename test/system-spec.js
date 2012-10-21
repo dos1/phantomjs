@@ -30,4 +30,12 @@ describe("System object", function() {
         expect(typeof system.env).toEqual('object');
     });
 
+    it("should have os as object", function() {
+        expect(typeof system.os).toEqual('object');
+    });
+
+    it("should have isSSLSupported as boolean", function() {
+        expect(typeof system.isSSLSupported).toEqual('boolean');
+    });
+
 });

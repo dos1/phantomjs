@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -172,7 +172,7 @@ public:
     virtual void addCheckBox(const QRectF &r, bool checked, const QString &name, bool readOnly) {
         Q_UNUSED(r); Q_UNUSED(checked); Q_UNUSED(name); Q_UNUSED(readOnly);
     }
-    virtual void addRadioButton(const QRectF &r, const QString & group="", bool checked=false, const QString &name="", bool readOnly=false) {
+    virtual void addRadioButton(const QRectF &r, const QString &group = QString(), bool checked = false, const QString &name = QString(), bool readOnly = false) {
         Q_UNUSED(r); Q_UNUSED(checked); Q_UNUSED(name); Q_UNUSED(readOnly); Q_UNUSED(group);
     }
 

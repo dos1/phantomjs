@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -369,6 +369,7 @@ void QAccessible::updateAccessibility(QObject *o, int who, Event reason)
             if (w->internalWinId())
                 break;
         }
+#ifndef QT_NO_GRAPHICSVIEW
         if (QGraphicsObject *gfxObj = qobject_cast<QGraphicsObject*>(p)) {
             QGraphicsItem *parentItem = gfxObj->parentItem();
             if (parentItem) {
@@ -384,7 +385,9 @@ void QAccessible::updateAccessibility(QObject *o, int who, Event reason)
                 }
                 p = view;
             }
-        } else {
+        } else
+#endif // QT_NO_GRAPHICSVIEW
+        {
             p = p->parent();
         }
 

@@ -50,6 +50,8 @@ public:
     void setCustomHeaders(const QVariantMap &headers);
     QVariantMap customHeaders() const;
 
+    void setCookieJar(QNetworkCookieJar *cookieJar);
+
 protected:
     bool m_ignoreSslErrors;
     QString m_userName;

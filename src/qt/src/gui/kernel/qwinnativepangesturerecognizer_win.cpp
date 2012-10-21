@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -66,8 +66,10 @@ QGesture *QWinNativePanGestureRecognizer::create(QObject *target)
         return new QPanGesture; // a special case
     if (!target->isWidgetType())
         return 0;
+#ifndef QT_NO_GRAPHICSVIEW
     if (qobject_cast<QGraphicsObject *>(target))
         return 0;
+#endif // QT_NO_GRAPHICSVIEW
 
     QWidget *q = static_cast<QWidget *>(target);
     QWidgetPrivate *d = q->d_func();

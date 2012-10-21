@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -1130,6 +1130,7 @@ bool qSharedBuild()
     \value WV_2003  Windows Server 2003, Windows Server 2003 R2, Windows Home Server, Windows XP Professional x64 Edition (operating system version 5.2)
     \value WV_VISTA Windows Vista, Windows Server 2008 (operating system version 6.0)
     \value WV_WINDOWS7 Windows 7, Windows Server 2008 R2 (operating system version 6.1)
+    \value WV_WINDOWS8 Windows 8
 
     Alternatively, you may use the following macros which correspond directly to the Windows operating system version number:
 
@@ -1139,6 +1140,7 @@ bool qSharedBuild()
     \value WV_5_2   Operating system version 5.2, corresponds to Windows Server 2003, Windows Server 2003 R2, Windows Home Server, and Windows XP Professional x64 Edition
     \value WV_6_0   Operating system version 6.0, corresponds to Windows Vista and Windows Server 2008
     \value WV_6_1   Operating system version 6.1, corresponds to Windows 7 and Windows Server 2008 R2
+    \value WV_6_2   Operating system version 6.1, corresponds to Windows 8
 
     CE-based versions:
 
@@ -1174,6 +1176,7 @@ bool qSharedBuild()
     \value MV_10_5     Mac OS X 10.5
     \value MV_10_6     Mac OS X 10.6
     \value MV_10_7     Mac OS X 10.7
+    \value MV_10_8     Mac OS X 10.8
     \value MV_Unknown  An unknown and currently unsupported platform
 
     \value MV_CHEETAH  Apple codename for MV_10_0
@@ -1184,6 +1187,7 @@ bool qSharedBuild()
     \value MV_LEOPARD  Apple codename for MV_10_5
     \value MV_SNOWLEOPARD  Apple codename for MV_10_6
     \value MV_LION     Apple codename for MV_10_7
+    \value MV_MOUNTAINLION Apple codename for MV_10_8
 
     \sa WinVersion, SymbianVersion
 */
@@ -1205,6 +1209,7 @@ bool qSharedBuild()
     \value SV_SF_4 \e{This enum value is deprecated.}
     \value SV_API_5_3 Symbian/S60 API version 5.3 release
     \value SV_API_5_4 Symbian/S60 API version 5.4 release
+    \value SV_API_5_5 Symbian/S60 API version 5.5 release
     \value SV_Unknown An unknown and currently unsupported platform
 
     \sa S60Version, WinVersion, MacVersion
@@ -1225,6 +1230,7 @@ bool qSharedBuild()
     \value SV_S60_5_2 Symbian^3 and Symbian Anna
     \value SV_S60_5_3 Symbian/S60 API version 5.3 release
     \value SV_S60_5_4 Symbian/S60 API version 5.4 release
+    \value SV_S60_5_5 Symbian/S60 API version 5.5 release
     \value SV_S60_Unknown An unknown and currently unsupported platform
     \omitvalue SV_S60_None
 
@@ -1738,6 +1744,8 @@ QSysInfo::WinVersion QSysInfo::windowsVersion()
             winver = QSysInfo::WV_VISTA;
         } else if (osver.dwMajorVersion == 6 && osver.dwMinorVersion == 1) {
             winver = QSysInfo::WV_WINDOWS7;
+        } else if (osver.dwMajorVersion == 6 && osver.dwMinorVersion == 2) {
+            winver = QSysInfo::WV_WINDOWS8;
         } else {
             qWarning("Qt: Untested Windows version %d.%d detected!",
                      int(osver.dwMajorVersion), int(osver.dwMinorVersion));
@@ -1769,6 +1777,8 @@ QSysInfo::WinVersion QSysInfo::windowsVersion()
             winver = QSysInfo::WV_VISTA;
         else if (override == "WINDOWS7")
             winver = QSysInfo::WV_WINDOWS7;
+        else if (override == "WINDOWS8")
+            winver = QSysInfo::WV_WINDOWS8;
     }
 #endif
 
@@ -1821,9 +1831,12 @@ static void symbianInitVersions()
                 } else if (minor == 3) {
                     cachedS60Version = QSysInfo::SV_S60_5_3;
                     cachedSymbianVersion = QSysInfo::SV_API_5_3;
-                } else if (minor >= 4) {
+                } else if (minor == 4) {
                     cachedS60Version = QSysInfo::SV_S60_5_4;
                     cachedSymbianVersion = QSysInfo::SV_API_5_4;
+                } else if (minor >= 5) {
+                    cachedS60Version = QSysInfo::SV_S60_5_5;
+                    cachedSymbianVersion = QSysInfo::SV_API_5_5;
                 }
             }
         }
@@ -1853,6 +1866,9 @@ static void symbianInitVersions()
 #   elif defined(S60_VERSION_5_4)
         cachedS60Version = QSysInfo::SV_S60_5_4;
         cachedSymbianVersion = QSysInfo::SV_API_5_4;
+#   elif defined(S60_VERSION_5_5)
+        cachedS60Version = QSysInfo::SV_S60_5_5;
+        cachedSymbianVersion = QSysInfo::SV_API_5_5;
 #   endif
     }
 #  endif
