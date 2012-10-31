@@ -264,6 +264,23 @@ describe("WebPage object", function() {
                 document.querySelector('input').focus();
             });
             page.sendEvent('keypress', "ABCD");
+            // 0x02000000 is the Shift modifier.
+            page.sendEvent('keypress', page.event.key.Home, null, null,  0x02000000);
+            page.sendEvent('keypress', page.event.key.Delete);
+            var text = page.evaluate(function() {
+                return document.querySelector('input').value;
+            });
+            expect(text).toEqual("");
+        });
+    });
+
+    it("should handle key events with modifier keys", function() {
+        runs(function() {
+            page.content = '<input type="text">';
+            page.evaluate(function() {
+                document.querySelector('input').focus();
+            });
+            page.sendEvent('keypress', "ABCD");
             var text = page.evaluate(function() {
                 return document.querySelector('input').value;
             });
@@ -594,6 +611,39 @@ describe("WebPage object", function() {
 
         runs(function() {
             expect(handled).toEqual(true);
+            server.close();
+        });
+
+    });
+
+    it("should return properly from a 401 status", function() {
+        var server = require('webserver').create();
+        server.listen(12345, function(request, response) {
+            response.statusCode = 401;
+            response.setHeader('WWW-Authenticate', 'Basic realm="PhantomJS test"');
+            response.write('Authentication Required');
+            response.close();
+        });
+
+        var url = "http://localhost:12345/foo";
+        var handled = 0;
+        runs(function() {
+            expect(handled).toEqual(0);
+            page.onResourceReceived = function(resource) {
+                expect(resource.status).toEqual(401);
+                handled++;
+            };
+            page.open(url, function(status) {
+                expect(status).toEqual('fail');
+                handled++;
+            });
+        });
+
+        waits(50);
+
+        runs(function() {
+            expect(handled).toEqual(2);
+            page.onResourceReceived = null;
             server.close();
         });
 
