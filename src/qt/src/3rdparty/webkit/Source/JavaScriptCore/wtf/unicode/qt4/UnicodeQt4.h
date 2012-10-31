@@ -68,7 +68,7 @@ typedef uint16_t UChar;
 #endif
 
 #if !USE(QT_ICU_TEXT_BREAKING)
-typedef uint32_t UChar32;
+typedef int32_t UChar32;
 #endif
 
 namespace WTF {
