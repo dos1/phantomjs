@@ -399,17 +399,32 @@ void WebServerResponse::writeHead(int statusCode, const QVariantMap &headers)
     mg_write(m_conn, "\r\n", 2);
 }
 
-void WebServerResponse::write(const QString &body)
+void WebServerResponse::write(const QVariant &body, const QString &mode)
 {
     if (!m_headersSent) {
         writeHead(m_statusCode, m_headers);
     }
-    ///TODO: encoding?!
 
-    QByteArray data(body.size(), Qt::Uninitialized);
-    for(int i = 0; i < body.size(); ++i) {
-      data[i] = body.at(i).toAscii();
+    bool isBinary = false;
+
+    // Determine the OpenMode
+    foreach(const QChar &c, mode) {
+      switch(c.toAscii()) {
+        case 't': case 'T': {
+          isBinary = false;
+          break;
+        }
+        case 'b': case 'B': {
+          isBinary = true;
+          break;
+        }
+        default: {
+          qDebug() << "WebServerResponse::write - " << "Wrong Mode:" << c;
+        }
+      }
     }
+
+    QByteArray data = isBinary ? body.toByteArray() : body.toString().toLocal8Bit();
 
     mg_write(m_conn, data.constData(), data.size());
 }
