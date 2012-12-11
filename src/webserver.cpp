@@ -221,9 +221,9 @@ bool WebServer::handleRequest(mg_event event, mg_connection *conn, const mg_requ
             // Check if the 'Content-Type' requires decoding
             if (headersObject["Content-Type"] == "application/x-www-form-urlencoded") {
                 requestObject["post"] = UrlEncodedParser::parse(QByteArray(data, read));
-                requestObject["postRaw"] = QString::fromLocal8Bit(data, read);
+                requestObject["postRaw"] = QString::fromUtf8(data, read);
             } else {
-                requestObject["post"] = QString::fromLocal8Bit(data, read);
+                requestObject["post"] = QString::fromUtf8(data, read);
             }
             delete[] data;
         } else {

@@ -48,10 +48,14 @@ class Phantom;
 class WebPage: public REPLCompletable, public QWebFrame::PrintCallback
 {
     Q_OBJECT
+    Q_PROPERTY(QString title READ title)
+    Q_PROPERTY(QString frameTitle READ frameTitle)
     Q_PROPERTY(QString content READ content WRITE setContent)
     Q_PROPERTY(QString frameContent READ frameContent WRITE setFrameContent)
     Q_PROPERTY(QString url READ url)
     Q_PROPERTY(QString frameUrl READ frameUrl)
+    Q_PROPERTY(bool canGoBack READ canGoBack)
+    Q_PROPERTY(bool canGoForward READ canGoForward)
     Q_PROPERTY(QString plainText READ plainText)
     Q_PROPERTY(QString framePlainText READ framePlainText)
     Q_PROPERTY(QString libraryPath READ libraryPath WRITE setLibraryPath)
@@ -84,6 +88,9 @@ public:
     QString frameContent() const;
     void setContent(const QString &content);
     void setFrameContent(const QString &content);
+
+    QString title() const;
+    QString frameTitle() const;
 
     QString url() const;
     QString frameUrl() const;
@@ -245,6 +252,7 @@ public slots:
     bool injectJs(const QString &jsFilePath);
     void _appendScriptElement(const QString &scriptUrl);
     QObject *_getGenericCallback();
+    QObject *_getFilePickerCallback();
     QObject *_getJsConfirmCallback();
     QObject *_getJsPromptCallback();
     void uploadFile(const QString &selector, const QString &fileName);
@@ -396,6 +404,57 @@ public slots:
      */
     bool clearCookies();
 
+    /**
+     * Checks if this Page can go back in the Navigation History
+     * @brief canGoBack
+     * @return "true" if it can, "false" otherwise
+     */
+    bool canGoBack();
+    /**
+     * Goes back in the Navigation History
+     * @brief goBack
+     * @return "true" if it does go back in the Navigation History, "false" otherwise
+     */
+    bool goBack();
+    /**
+     * Checks if this Page can go forward in the Navigation History (i.e. next URL)
+     * @brief canGoForward
+     * @return "true" if it can, "false" otherwise
+     */
+    bool canGoForward();
+    /**
+     * Goes forward in the Navigation History
+     * @brief goForward
+     * @return "true" if it does go forward in the Navigation History, "false" otherwise
+     */
+    bool goForward();
+    /**
+     * Go to the page identified by its relative location to the current page.
+     * For example '-1' for the previous page or 1 for the next page.
+     *
+     * Modelled after JavaScript "window.go(num)" method:
+     * {@see https://developer.mozilla.org/en-US/docs/DOM/window.history#Syntax}.
+     * @brief go
+     * @param historyRelativeIndex
+     * @return "true" if it does go forward/backgward in the Navigation History, "false" otherwise
+     */
+    bool go(int historyRelativeIndex);
+    /**
+     * Reload current page
+     * @brief reload
+     */
+    void reload();
+    /**
+     * Stop loading page (if the page is loading)
+     *
+     * NOTE: This method does nothing when page is not actually loading.
+     * It's effect can be applied in that very short window of time between
+     * "onLoadStarted" and "onLoadFinished".
+     *
+     * @brief stop
+     */
+    void stop();
+
 signals:
     void initialized();
     void loadStarted();
@@ -412,7 +471,7 @@ signals:
 
 private slots:
     void finish(bool ok);
-    void handleJavaScriptWindowObjectCleared();
+    void setupFrame(QWebFrame *frame = NULL);
 
 private:
     QImage renderImage();
@@ -428,6 +487,7 @@ private:
      */
     void changeCurrentFrame(QWebFrame * const frame);
 
+    QString filePicker(const QString &oldFile);
     bool javaScriptConfirm(const QString &msg);
     bool javaScriptPrompt(const QString &msg, const QString &defaultValue, QString *result);
 

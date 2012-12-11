@@ -102,10 +102,44 @@ describe("WebPage object", function() {
         expect(page).toNotEqual(null);
     });
 
+    it("should be able to get any signal handler that are currently set on it", function() {
+        page.onInitialized = undefined;
+        expect(page.onInitialized).toBeUndefined();
+        var onInitialized1 = function() { var x = "x"; };
+        page.onInitialized = onInitialized1;
+        expect(page.onInitialized).toEqual(onInitialized1);
+        var onInitialized2 = function() { var y = "y"; };
+        page.onInitialized = onInitialized2;
+        expect(page.onInitialized).toEqual(onInitialized2);
+        expect(page.onInitialized).toNotEqual(onInitialized1);
+        page.onInitialized = null;
+        // Will only allow setting to a function value, so setting it to `null` returns `undefined`
+        expect(page.onInitialized).toBeUndefined();
+        page.onInitialized = undefined;
+        expect(page.onInitialized).toBeUndefined();
+    });
+
+    it("should be able to get any callback handler that are currently set on it", function() {
+        page.onConfirm = undefined;
+        expect(page.onConfirm).toBeUndefined();
+        var onConfirmFunc1 = function() { return !"x"; };
+        page.onConfirm = onConfirmFunc1;
+        expect(page.onConfirm).toEqual(onConfirmFunc1);
+        var onConfirmFunc2 = function() { return !!"y"; };
+        page.onConfirm = onConfirmFunc2;
+        expect(page.onConfirm).toEqual(onConfirmFunc2);
+        expect(page.onConfirm).toNotEqual(onConfirmFunc1);
+        page.onConfirm = null;
+        // Will only allow setting to a function value, so setting it to `null` returns `undefined`
+        expect(page.onConfirm).toBeUndefined();
+        page.onConfirm = undefined;
+        expect(page.onConfirm).toBeUndefined();
+    });
+
     checkPageCallback(page);
     checkPageConfirm(page);
     checkPagePrompt(page);
-
+    
     checkClipRect(page, {height:0,left:0,top:0,width:0});
 
     expectHasPropertyString(page, 'content');
@@ -121,7 +155,7 @@ describe("WebPage object", function() {
 
     expectHasProperty(page, 'paperSize');
     it("should have paperSize as an empty object", function() {
-            expect(page.paperSize).toEqual({});
+        expect(page.paperSize).toEqual({});
     });
 
     checkScrollPosition(page, {left:0,top:0});
@@ -134,12 +168,12 @@ describe("WebPage object", function() {
 
     expectHasProperty(page, 'customHeaders');
     it("should have customHeaders as an empty object", function() {
-            expect(page.customHeaders).toEqual({});
+        expect(page.customHeaders).toEqual({});
     });
 
     expectHasProperty(page, 'zoomFactor');
     it("should have zoomFactor of 1", function() {
-            expect(page.zoomFactor).toEqual(1.0);
+        expect(page.zoomFactor).toEqual(1.0);
     });
 
     expectHasProperty(page, 'event');
@@ -288,6 +322,29 @@ describe("WebPage object", function() {
         });
     });
 
+    it("should send proper key codes for text", function () {
+        runs(function() {
+            page.content = '<input type="text">';
+            page.evaluate(function() {
+                document.querySelector('input').focus();
+            });
+            page.sendEvent('keypress', "ABCD");
+            // 0x02000000 is the Shift modifier.
+            page.sendEvent('keypress', page.event.key.Home, null, null,  0x02000000);
+            // 0x04000000 is the Control modifier.
+            page.sendEvent('keypress', 'x', null, null, 0x04000000);
+            var text = page.evaluate(function() {
+                return document.querySelector('input').value;
+            });
+            expect(text).toEqual("");
+            page.sendEvent('keypress', 'v', null, null, 0x04000000);
+            text = page.evaluate(function() {
+                return document.querySelector('input').value;
+            });
+            expect(text).toEqual("ABCD");
+        });
+    });
+
     it("should handle keypress event of umlaut char with inputs", function() {
         runs(function() {
             page.content = '<input type="text">';
@@ -312,8 +369,6 @@ describe("WebPage object", function() {
             });
             page.sendEvent('mousedown', 42, 217);
         });
-
-        waits(50);
 
         runs(function() {
             var event = page.evaluate(function() {
@@ -397,6 +452,26 @@ describe("WebPage object", function() {
         });
     });
 
+    it("should handle doubleclick event", function () {
+        runs(function () {
+            page.content = '<input id="doubleClickField" type="text" onclick="document.getElementById(\'doubleClickField\').value=\'clicked\';" ondblclick="document.getElementById(\'doubleClickField\').value=\'doubleclicked\';" oncontextmenu="document.getElementById(\'doubleClickField\').value=\'rightclicked\'; return false;" value="hello"/>';
+            var point = page.evaluate(function () {
+                var el = document.querySelector('input');
+                var rect = el.getBoundingClientRect();
+                return { x: rect.left + Math.floor(rect.width / 2), y: rect.top + (rect.height / 2) };
+            });
+            page.sendEvent('doubleclick', point.x, point.y);
+        });
+
+        waits(50);
+
+        runs(function () {
+            var text = page.evaluate(function () {
+                return document.querySelector('input').value;
+            });
+            expect(text).toEqual("doubleclicked");
+        });
+    });
 
     it("should handle file uploads", function() {
         runs(function() {
@@ -898,6 +973,26 @@ describe("WebPage object", function() {
                 [true, 0, "string"],
                 /\d+\w*\//);
             expect(message).toEqual("PASS");
+        });
+    });
+    
+    it('should open url using secure connection', function() {
+        var page = require('webpage').create();
+        var url = 'https://en.wikipedia.org';
+      
+        var handled = false;
+      
+        runs(function() {
+            page.open(url, function(status) {
+                expect(status == 'success').toEqual(true);
+                handled = true;
+            });
+        });
+          
+        waits(3000);
+        
+        runs(function() {
+            expect(handled).toEqual(true);
         });
     });
 });
@@ -1412,6 +1507,61 @@ describe("WebPage closing notification/alerting: closing propagation control", f
 
         runs(function() {
             expect(openPagesCount).toBe(0);
+        });
+    });
+});
+
+describe("WebPage 'onFilePicker'", function() {
+    it("should be able to set the file to upload when the File Picker is invoked (i.e. clicking on a 'input[type=file]')", function() {
+        var system = require('system'),
+            fileToUpload = system.os.name === "windows" ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts",
+            server = require("webserver").create(),
+            page = require("webpage").create();
+
+        // Create a webserver that returns a page with an "input type=file" element
+        server.listen(12345, function(request, response) {
+            response.statusCode = 200;
+            response.write('<html><body><input type="file" id="fileup" /></body></html>');
+            response.close();
+        });
+
+        // Register "onFilePicker" handler
+        page.onFilePicker = function(oldFile) {
+            return fileToUpload;
+        };
+
+        runs(function() {
+            page.open("http://localhost:12345", function() {
+                // Before clicking on the file selector element
+                expect(page.evaluate(function() {
+                    var fileUp = document.querySelector("#fileup");
+                    return fileUp.files.length;
+                })).toBe(0);
+
+                // Click on file selector element, so the "onFilePicker" is invoked
+                page.evaluate(function() {
+                    var fileUp = document.querySelector("#fileup");
+                    var ev = document.createEvent("MouseEvents");
+                    ev.initEvent("click", true, true);
+                    fileUp.dispatchEvent(ev);
+                });
+
+                // After clicking on the file selector element
+                expect(page.evaluate(function() {
+                    var fileUp = document.querySelector("#fileup");
+                    return fileUp.files.length;
+                })).toBe(1);
+                expect(page.evaluate(function() {
+                    var fileUp = document.querySelector("#fileup");
+                    return fileUp.files[0].name;
+                })).toContain("hosts");
+            });
+        });
+
+        waits(100);
+
+        runs(function() {
+            server.close();
         });
     });
 });
